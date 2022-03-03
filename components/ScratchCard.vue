@@ -48,7 +48,8 @@ export default defineComponent({
       brushOptions,
       hideOptions,
       getPercentageCleared,
-      percentageStride } = props
+      percentageStride
+    } = props
 
     const canvas: any = ref(null)
     const canvasContext: any = ref(null)
@@ -74,6 +75,7 @@ export default defineComponent({
       nextTick(() => fillArea())
     }
 
+    // 畫布初始化設定
     const setCanvasSizeAndContext = () => {
       nextTick(() => {
         const canvasRect = canvas.value?.getBoundingClientRect()
@@ -84,13 +86,14 @@ export default defineComponent({
       })
     }
 
+    // 取得該畫布相對於視窗(加上滾動距離)的位置
     const setOffsets = () => {
       const { top, left } = canvas.value?.getBoundingClientRect()
       offset.top = top + document.body.scrollTop
       offset.left = left + document.body.scrollLeft
     }
 
-    
+    // 設定Scratch層的樣式，可更換任意圖片或是改成純色模式    
     const setFillStyle = () => {
       const {
         type,
@@ -105,6 +108,7 @@ export default defineComponent({
       return new Promise((resolve, reject) => {
         const img = new Image()
         img.onload = () => {
+          // createPattern，可以設定填充該圖形的模式
           canvasContext.value.fillStyle = canvasContext.value.createPattern(img, repeat)
           resolve(img)
         }
@@ -113,6 +117,7 @@ export default defineComponent({
       })
     }
 
+    // 設定Scratch層的位置
     const fillArea = async () => {
       const { width, height } = canvas.value?.getBoundingClientRect()
       await setFillStyle()
@@ -127,11 +132,16 @@ export default defineComponent({
       initFlag.value = false
     }
 
+    // 取得最後的位置，對最後的位置來說上一刻的位置就是最後的位置
     const lastPositionHelper = (x: number, y: number) => {
       position.lastX = x
       position.lastY = y
     }
 
+    // 取得現在的位置
+    // 這邊會抓到目前視窗的X、Y位置 => x: ClientX、y: ClientY
+    // 在用getBoundingClientRect抓到目前目標畫布的相對於ViewPort(可視區域)的位置
+    // 再用前者扣掉後者讓觸發範圍在該目標畫布身上
     const currentPositionHelper = (x: number, y: number) => {
       position.currX = x - offset.left
       position.currY = y - offset.top
